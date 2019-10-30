@@ -2,9 +2,11 @@ package com.example.coolweather;
 
 import android.animation.TypeEvaluator;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -59,17 +61,17 @@ public class ChooseAreaFragment extends Fragment {
     /*
     * 省列表
     * */
-    private List<Province> provinceList;
+    private List<Province> provinceList = new ArrayList<>();
 
     /*
     * 市列表
     * */
-    private List<City> cityList;
+    private List<City> cityList = new ArrayList<>();
 
     /*
     * 县列表
     * */
-    private List<County> countyList;
+    private List<County> countyList = new ArrayList<>();
 
     /*
     * 选中的省份
@@ -85,6 +87,8 @@ public class ChooseAreaFragment extends Fragment {
     * 当前选中的级别
     * */
     private  int currentLevel;
+
+    private static final String TAG = "ChooseAreaFragment";
 
     @Nullable
     @Override
@@ -110,6 +114,12 @@ public class ChooseAreaFragment extends Fragment {
                 }else if(currentLevel == LEVEL_CITY){
                     selectedCity = cityList.get(position);
                     queryCounties();
+                }else if(currentLevel == LEVEL_COUNTRY){
+                    String weatherId = countyList.get(position).getWeatherId();
+                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -136,7 +146,6 @@ public class ChooseAreaFragment extends Fragment {
         provinceList = LitePal.findAll(Province.class);
         if(provinceList.size()>0){
             dataList.clear();
-            Log.d("好好好", String.valueOf(provinceList.size()));
             for (Province province : provinceList) {
                 dataList.add(province.getProvinceName());
             }
@@ -179,10 +188,10 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCounties(){
         titleText.setText(selectedCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
-        List<County> counties = LitePal.where("cityid = ?", String.valueOf(selectedCity.getId())).find(County.class);
-        if(counties.size()>0){
+        countyList = LitePal.where("cityid = ?", String.valueOf(selectedCity.getId())).find(County.class);
+        if(countyList.size()>0){
             dataList.clear();
-            for (County county : counties) {
+            for (County county : countyList) {
                 dataList.add(county.getCountyName());
             }
             adapter.notifyDataSetChanged();
@@ -207,11 +216,11 @@ public class ChooseAreaFragment extends Fragment {
                 String responseText = response.body().string();
                 boolean result = false;
                 if(LEVEL_PROVINCE == type){
-                    Log.d("好惨", responseText);
                     result = Utility.handleProvinceResponse(responseText);
                 }else if(LEVEL_CITY == type){
                     result = Utility.handleCityResponse(responseText,selectedProvince.getId());
                 }else if(LEVEL_COUNTRY== type){
+//                    Log.d(TAG, responseText);
                     result = Utility.handleCountyResponse(responseText,selectedCity.getId());
                 }
                 /*

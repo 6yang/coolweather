@@ -8,6 +8,16 @@ public class County extends LitePalSupport {
 
     private String countyName;
 
+    @Override
+    public String toString() {
+        return "County{" +
+                "id=" + id +
+                ", countyName='" + countyName + '\'' +
+                ", weatherId='" + weatherId + '\'' +
+                ", cityId=" + cityId +
+                '}';
+    }
+
     private String weatherId;
 
     private int cityId;
